@@ -13,7 +13,7 @@ import openai
 import os
 
 # Load OpenAI API key securely from Streamlit secrets or environment
-openai.api_key = os.getenv("OPENAI_API_KEY") or st.secrets.get("OPENAI_API_KEY")
+api_key = os.getenv("OPENAI_API_KEY") or st.secrets.get("OPENAI_API_KEY")
 
 # Page config
 st.set_page_config(page_title="AI Report Summarizer", layout="wide")
@@ -29,18 +29,21 @@ def extract_text_from_pdf(file):
 
 # Function: Generate OpenAI summary
 def generate_summary(text_input):
-    if not openai.api_key:
+    if not api_key:
         return "❌ OpenAI API key is missing. Please set it in Streamlit Secrets."
 
-    client = openai.OpenAI()
-    response = client.chat.completions.create(
-        model="gpt-4",
-        messages=[
-            {"role": "system", "content": "Summarize this report in bullet points."},
-            {"role": "user", "content": text_input}
-        ]
-    )
-    return response.choices[0].message.content
+    client = openai.OpenAI(api_key=api_key)
+    try:
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "Summarize this report in bullet points."},
+                {"role": "user", "content": text_input}
+            ]
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        return f"❌ Error from OpenAI: {e}"
 
 # Function: Summarize Excel content
 def summarize_excel(uploaded_file):
